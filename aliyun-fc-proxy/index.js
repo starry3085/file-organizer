@@ -1,4 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = require('node-fetch');
 
 module.exports.handler = async (event, context, callback) => {
   const { path, httpMethod, headers, body } = JSON.parse(event.toString());
