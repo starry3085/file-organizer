@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 module.exports.handler = async (event, context, callback) => {
-  const { path, httpMethod, headers, body } = JSON.parse(event.toString());
+  const { path, httpMethod, headers, body } = event;
   const origin = headers.origin || '*';
   if (httpMethod === 'OPTIONS') {
     callback(null, {
