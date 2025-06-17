@@ -1,22 +1,22 @@
 const fetch = require('node-fetch');
 
 module.exports.handler = async (event, context, callback) => {
-  const { path, httpMethod, headers, body } = event;
-  const origin = headers.origin || '*';
-  if (httpMethod === 'OPTIONS') {
-    callback(null, {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'POST,OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      },
-      body: ''
-    });
-    return;
-  }
-  let resp, status = 200, result = {};
   try {
+    const { path, httpMethod, headers, body } = event;
+    const origin = headers.origin || '*';
+    if (httpMethod === 'OPTIONS') {
+      callback(null, {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        },
+        body: ''
+      });
+      return;
+    }
+    let resp, status = 200, result = {};
     const req = JSON.parse(body);
     if (path.endsWith('/deepseek')) {
       resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -44,17 +44,17 @@ module.exports.handler = async (event, context, callback) => {
       status = 404;
       result = { error: 'Not found' };
     }
-  } catch (e) {
-    status = 500;
-    result = { error: e.message || 'Proxy error' };
+    callback(null, {
+      statusCode: status,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      },
+      body: JSON.stringify(result)
+    });
+  } catch (err) {
+    console.error('Handler error:', err);
+    callback(err);
   }
-  callback(null, {
-    statusCode: status,
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-    },
-    body: JSON.stringify(result)
-  });
 }; 
