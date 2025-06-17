@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 
 module.exports.handler = async (event, context, callback) => {
   try {
+    console.log('收到event:', JSON.stringify(event));
     const { path, httpMethod, headers, body } = event;
     const origin = headers.origin || '*';
     if (httpMethod === 'OPTIONS') {
@@ -18,6 +19,7 @@ module.exports.handler = async (event, context, callback) => {
     }
     let resp, status = 200, result = {};
     const req = JSON.parse(body);
+    console.log('解析后req:', JSON.stringify(req));
     // 优先处理 /qwen
     if (path.endsWith('/qwen')) {
       // 只保留官方要求字段
