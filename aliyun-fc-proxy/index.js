@@ -20,13 +20,16 @@ module.exports.handler = async (event, context, callback) => {
     const req = JSON.parse(body);
     // 优先处理 /qwen
     if (path.endsWith('/qwen')) {
+      // 确保 model 字段存在，默认用 qwen-turbo
+      const qwenReq = { ...req, apiKey: undefined };
+      if (!qwenReq.model) qwenReq.model = 'qwen-turbo';
       resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${req.apiKey}`,
         },
-        body: JSON.stringify({ ...req, apiKey: undefined }),
+        body: JSON.stringify(qwenReq),
       });
       status = resp.status;
       result = await resp.json();
@@ -67,7 +70,7 @@ if (require.main === module) {
       path: '/qwen',
       httpMethod: 'POST',
       headers: {},
-      body: JSON.stringify({ apiKey: 'sk-3207b265a966424c80d520c122049db0', prompt: 'hello' })
+      body: JSON.stringify({ apiKey: 'sk-3207b265a966424c80d520c122049db0', prompt: 'hello', model: 'qwen-turbo' })
     },
     {},
     (err, res) => {
