@@ -27,7 +27,7 @@ async function callDeepSeekAPI(content: string, apiKey: string, model = 'deepsee
       apiKey,
       model,
       messages: [
-        { role: 'system', content: '你是一个文件分类助手，请根据内容判断文件类型，返回最合适的分类标签（如：合同、发票、简历、论文、报告、图片、代码、表格、PPT、音频、视频、其他），只返回标签，不要解释。' },
+        { role: 'system', content: '你是一个文件整理助手。请根据文件内容，分析并建议最合适的业务或生活场景分类标签（如：保险、行政、个人、个税、活动、图片、业务等），只返回标签，不要解释。' },
         { role: 'user', content: content.slice(0, 4000) },
       ],
       temperature: 0.2,
@@ -48,7 +48,7 @@ async function callQwenAPI(content: string, apiKey: string, model = 'qwen-turbo'
     body: JSON.stringify({
       apiKey,
       model,
-      input: { prompt: `请根据以下内容判断文件类型，返回最合适的分类标签（如：合同、发票、简历、论文、报告、图片、代码、表格、PPT、音频、视频、其他），只返回标签，不要解释。\n${content.slice(0, 4000)}` },
+      input: { prompt: `你是一个文件整理助手。请根据文件内容，分析并建议最合适的业务或生活场景分类标签（如：保险、行政、个人、个税、活动、图片、业务等），只返回标签，不要解释。\n${content.slice(0, 4000)}` },
       parameters: { temperature: 0.2, max_tokens: 20 },
     }),
   });
