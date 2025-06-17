@@ -18,8 +18,9 @@ module.exports.handler = async (event, context, callback) => {
     }
     let resp, status = 200, result = {};
     const req = JSON.parse(body);
-    if (path.endsWith('/deepseek')) {
-      resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    // 优先处理 /qwen
+    if (path.endsWith('/qwen')) {
+      resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,8 +30,8 @@ module.exports.handler = async (event, context, callback) => {
       });
       status = resp.status;
       result = await resp.json();
-    } else if (path.endsWith('/qwen')) {
-      resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+    } else if (path.endsWith('/deepseek')) {
+      resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ module.exports.handler = async (event, context, callback) => {
 if (require.main === module) {
   module.exports.handler(
     {
-      path: '/deepseek',
+      path: '/qwen',
       httpMethod: 'POST',
       headers: {},
       body: JSON.stringify({ apiKey: 'sk-3207b265a966424c80d520c122049db0', prompt: 'hello' })
