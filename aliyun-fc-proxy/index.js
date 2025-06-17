@@ -20,16 +20,32 @@ module.exports.handler = async (event, context, callback) => {
     const req = JSON.parse(body);
     // 优先处理 /qwen
     if (path.endsWith('/qwen')) {
-      // 确保 model 字段存在，默认用 qwen-turbo
-      const qwenReq = { ...req, apiKey: undefined };
-      if (!qwenReq.model) qwenReq.model = 'qwen-turbo';
+      // 只保留官方要求字段
+      const { apiKey, model, input, parameters } = req;
+      // 校验 input 必须有 prompt 或 messages
+      if (!input || (!input.prompt && !input.messages)) {
+        callback(null, {
+          statusCode: 400,
+          headers: {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'POST,OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+          },
+          body: JSON.stringify({
+            code: 'InvalidParameter',
+            message: 'input.prompt 或 input.messages 必须至少有一个',
+          })
+        });
+        return;
+      }
+      const qwenBody = { model: model || 'qwen-turbo', input, parameters };
       resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${req.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(qwenReq),
+        body: JSON.stringify(qwenBody),
       });
       status = resp.status;
       result = await resp.json();

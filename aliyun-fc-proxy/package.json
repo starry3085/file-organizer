@@ -2,7 +2,15 @@
   "name": "aliyun-fc-proxy",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "preinstall": "npm config set registry https://registry.npmjs.org/"
+  },
   "dependencies": {
-    "node-fetch": "^2.6.7"
+    "node-fetch": "2.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "eslint": "^9.29.0",
+    "globals": "^16.2.0"
   }
 }
