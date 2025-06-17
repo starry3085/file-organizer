@@ -1,0 +1,60 @@
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+module.exports.handler = async (event, context, callback) => {
+  const { path, httpMethod, headers, body } = JSON.parse(event.toString());
+  const origin = headers.origin || '*';
+  if (httpMethod === 'OPTIONS') {
+    callback(null, {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      },
+      body: ''
+    });
+    return;
+  }
+  let resp, status = 200, result = {};
+  try {
+    const req = JSON.parse(body);
+    if (path.endsWith('/deepseek')) {
+      resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${req.apiKey}`,
+        },
+        body: JSON.stringify({ ...req, apiKey: undefined }),
+      });
+      status = resp.status;
+      result = await resp.json();
+    } else if (path.endsWith('/qwen')) {
+      resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${req.apiKey}`,
+        },
+        body: JSON.stringify({ ...req, apiKey: undefined }),
+      });
+      status = resp.status;
+      result = await resp.json();
+    } else {
+      status = 404;
+      result = { error: 'Not found' };
+    }
+  } catch (e) {
+    status = 500;
+    result = { error: e.message || 'Proxy error' };
+  }
+  callback(null, {
+    statusCode: status,
+    headers: {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'POST,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    },
+    body: JSON.stringify(result)
+  });
+}; 
