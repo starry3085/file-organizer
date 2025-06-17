@@ -6,10 +6,6 @@ export interface LLMConfig {
   model?: string;
 }
 
-// 官方免费Key（仅示例，建议引导用户注册自己的免费Key）
-const DEEPSEEK_FREE_KEY = '';
-const QWEN_FREE_KEY = '';
-
 async function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -20,6 +16,7 @@ async function readFileText(file: File): Promise<string> {
 }
 
 async function callDeepSeekAPI(content: string, apiKey: string, model = 'deepseek-chat') {
+  if (!apiKey) throw new Error('请填写DeepSeek API Key');
   const url = 'https://api.deepseek.com/v1/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
@@ -37,12 +34,13 @@ async function callDeepSeekAPI(content: string, apiKey: string, model = 'deepsee
       max_tokens: 20,
     }),
   });
-  if (!res.ok) throw new Error('DeepSeek API 调用失败');
+  if (!res.ok) throw new Error('DeepSeek API 调用失败，请检查API Key');
   const data = await res.json();
   return data.choices?.[0]?.message?.content?.trim() || '智能分类失败';
 }
 
 async function callQwenAPI(content: string, apiKey: string, model = 'qwen-turbo') {
+  if (!apiKey) throw new Error('请填写通义千问API Key');
   const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
   const res = await fetch(url, {
     method: 'POST',
@@ -56,7 +54,7 @@ async function callQwenAPI(content: string, apiKey: string, model = 'qwen-turbo'
       parameters: { temperature: 0.2, max_tokens: 20 },
     }),
   });
-  if (!res.ok) throw new Error('通义千问API调用失败');
+  if (!res.ok) throw new Error('通义千问API调用失败，请检查API Key');
   const data = await res.json();
   return data.output?.text?.trim() || '智能分类失败';
 }
@@ -68,7 +66,7 @@ export async function classifyWithLLM(
 ): Promise<{ name: string; type: string; category: string; path: string }[]> {
   const results: { name: string; type: string; category: string; path: string }[] = [];
   let quota = 100; // 假设免费额度100次，实际应通过API获取
-  const apiKey = config.apiKey || (config.provider === 'deepseek' ? DEEPSEEK_FREE_KEY : QWEN_FREE_KEY);
+  const apiKey = config.apiKey || '';
   for (const f of files) {
     let category = '智能分类失败';
     try {
@@ -80,8 +78,8 @@ export async function classifyWithLLM(
       }
       quota--;
       if (onQuota && quota < 10) onQuota(quota);
-    } catch (e) {
-      category = '智能分类失败';
+    } catch (e: any) {
+      category = e?.message || '智能分类失败';
     }
     results.push({
       name: f.name,

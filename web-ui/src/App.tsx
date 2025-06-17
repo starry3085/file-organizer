@@ -55,12 +55,17 @@ const App: React.FC = () => {
               </select>
               <input
                 type="text"
-                placeholder="API Key（可选，留空用免费额度）"
+                placeholder="API Key（必填，点击下方链接免费获取）"
                 value={llmKey}
                 onChange={e => setLlmKey(e.target.value)}
-                style={{ width: 200 }}
+                style={{ width: 220 }}
               />
-              <button onClick={handleLLMClassify} disabled={llmLoading || rawFiles.length === 0} style={{ marginLeft: 8 }}>
+              <button
+                onClick={handleLLMClassify}
+                disabled={llmLoading || rawFiles.length === 0 || !llmKey}
+                style={{ marginLeft: 8 }}
+                title={!llmKey ? '请先填写API Key（下方可免费注册）' : ''}
+              >
                 {llmLoading ? '智能分类中...' : '智能分类'}
               </button>
               {quota !== null && quota < 5 && (
@@ -69,6 +74,13 @@ const App: React.FC = () => {
             </>
           )}
         </div>
+        {useLLM && !llmKey && (
+          <div style={{ color: '#d97706', fontSize: 14, marginBottom: 8 }}>
+            需先注册并填写API Key：
+            <a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', margin: '0 8px' }}>DeepSeek免费注册</a>
+            <a href="https://dashscope.aliyun.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', margin: '0 8px' }}>通义千问免费注册</a>
+          </div>
+        )}
         {loading && (
           <div style={{ marginBottom: 24 }}>
             <div style={{ height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
@@ -85,6 +97,9 @@ const App: React.FC = () => {
           ))}
         </div>
         <CategoryTable files={useLLM && llmFiles.length > 0 ? llmFiles : files} />
+        {useLLM && llmFiles.some(f => f.category.includes('API Key')) && (
+          <div style={{ color: 'red', fontSize: 14, marginTop: 8 }}>分类失败，请检查API Key是否填写正确，或前往上方链接免费注册获取。</div>
+        )}
         <div style={{ marginTop: 32, color: '#888', fontSize: 13, textAlign: 'center' }}>
           <div>所有文件仅在本地浏览器处理，绝不上传，API Key仅本地调用。</div>
           <div>开源地址：<a href="https://github.com/starry3085/file-organizer" target="_blank" rel="noopener noreferrer">starry3085/file-organizer</a></div>
