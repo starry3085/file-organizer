@@ -6,7 +6,7 @@ export interface LLMConfig {
   model?: string;
 }
 
-const VERCEL_PROXY_BASE = 'https://file-organizer-one.vercel.app/api';
+const VERCEL_PROXY_BASE = 'https://你的阿里云HTTP触发器地址'; // TODO: 替换为你的真实云端地址
 
 async function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
