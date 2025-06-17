@@ -11,6 +11,7 @@
 - 详细的日志记录
 - 跨平台支持（Windows/macOS）
 - 进度条显示
+- **可选：支持大模型API智能内容分类**
 
 ## 安装步骤
 
@@ -31,6 +32,38 @@
    ```bash
    file_organizer.exe <源目录路径>
    ```
+
+## 智能内容分类（大模型API，可选）
+
+本工具支持调用主流大模型API（如OpenAI ChatGPT、DeepSeek、阿里通义千问）对文件内容进行智能分类。
+
+### 配置方法
+1. 在项目根目录下找到或新建 `llm_config.json` 文件，内容如下：
+   ```json
+   {
+     "llm_provider": "openai",   // 可选：openai, deepseek, tongyi
+     "llm_api_key": "你的API_KEY",
+     "llm_api_base": "",           // 可选，部分平台需自定义base url
+     "llm_model": ""               // 可选，默认模型
+   }
+   ```
+2. 不填写或不配置API Key时，程序自动回退本地规则，不会报错。
+3. 支持扩展更多大模型，只需在 `file_organizer.py` 的 `classify_with_llm` 方法中添加分支即可。
+
+### 推荐免费/有免费额度的大模型API
+- **OpenAI ChatGPT**（https://platform.openai.com/）：注册有免费试用额度，需科学上网。
+- **DeepSeek**（https://platform.deepseek.com/）：注册即送免费额度。
+- **阿里通义千问（Qwen）**（https://dashscope.aliyun.com/）：阿里云账号注册，免费额度。
+- **百度文心一言**（https://cloud.baidu.com/product/wenxinworkshop）：百度云账号注册，免费额度。
+- **智谱清言GLM**（https://open.bigmodel.cn/）：注册即送免费额度。
+- **讯飞星火**（https://xinghuo.xfyun.cn/）：注册即送免费额度。
+- **月之暗面Kimi**（https://kimi.moonshot.cn/）：需申请API。
+
+> 你可以根据自己的需求和地区选择合适的大模型平台，注册获取API Key。
+
+### 安全与隐私
+- 本工具不会上传你的文件内容，所有API调用均在本地发起，API Key只保存在本地。
+- 不配置API Key时不会消耗任何大模型额度。
 
 ## 自定义分类规则
 

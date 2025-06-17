@@ -8,6 +8,7 @@ import openpyxl
 from PyPDF2 import PdfReader
 import pptx
 import json
+import requests
 
 
 class FileOrganizer:
@@ -21,6 +22,7 @@ class FileOrganizer:
         """
         self.categories = self._load_categories(categories_file)
         self._setup_logging()
+        self.llm_config = self.load_llm_config()
 
     def _load_categories(self, categories_file: str) -> Dict[str, Dict]:
         """加载分类规则。
@@ -244,6 +246,60 @@ class FileOrganizer:
             return self._extract_text_from_pptx(file_path)
         return ""
 
+    def load_llm_config(self, config_path="llm_config.json"):
+        if not os.path.exists(config_path):
+            return {}
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def classify_with_llm(self, text, config):
+        provider = config.get("llm_provider")
+        api_key = config.get("llm_api_key")
+        api_base = config.get("llm_api_base", "")
+        model = config.get("llm_model", "")
+        if not provider or not api_key:
+            return None
+        prompt = f"请判断下面内容类别（文档/表格/图片/视频/代码/合同/简历/报告/发票/课件/其他）：\n{text[:500]}"
+        if provider == "openai":
+            import openai
+            openai.api_key = api_key
+            if api_base:
+                openai.api_base = api_base
+            model = model or "gpt-3.5-turbo"
+            resp = openai.ChatCompletion.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return resp['choices'][0]['message']['content'].strip()
+        elif provider == "deepseek":
+            # DeepSeek API: https://platform.deepseek.com/
+            url = api_base or "https://api.deepseek.com/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": model or "deepseek-chat",
+                "messages": [{"role": "user", "content": prompt}]
+            }
+            resp = requests.post(url, headers=headers, json=data, timeout=30)
+            return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        elif provider == "tongyi":
+            # 通义千问API: https://help.aliyun.com/zh/dashscope/developer-reference/api-details
+            url = api_base or "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": model or "qwen-turbo",
+                "input": {"messages": [{"role": "user", "content": prompt}]}
+            }
+            resp = requests.post(url, headers=headers, json=data, timeout=30)
+            # 通义返回结构
+            return resp.json().get("output", {}).get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        return None
+
     def _classify_file(self, file_path: str) -> str:
         """根据文件类型和内容对文件进行分类。
 
@@ -255,20 +311,20 @@ class FileOrganizer:
         """
         file_ext = os.path.splitext(file_path)[1].lower()
         mime = magic.Magic(mime=True)
-        mime.from_file(file_path)  # 检查文件类型
-
-        # 根据文件扩展名和MIME类型进行分类
+        mime.from_file(file_path)
+        # 先用扩展名
         for category, rules in self.categories.items():
             if file_ext in rules["extensions"]:
                 return category
-
-        # 如果无法通过扩展名分类，尝试通过内容分类
+        # 用大模型API
         content = self._get_file_content(file_path)
         if content:
+            llm_result = self.classify_with_llm(content, self.llm_config)
+            if llm_result:
+                return llm_result
             for category, rules in self.categories.items():
                 if any(keyword in content for keyword in rules["keywords"]):
                     return category
-
         return "其他"
 
     def organize_files(self, directory: str):
