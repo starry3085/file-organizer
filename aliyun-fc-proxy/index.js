@@ -83,6 +83,31 @@ module.exports.handler = async (event, context, callback) => {
 
 // 本地测试代码，仅在直接运行时触发
 if (require.main === module) {
+  // 本地HTTP服务，支持curl测试
+  const express = require('express');
+  const app = express();
+  app.use(express.json());
+  app.post(['/qwen', '/deepseek'], (req, res) => {
+    const path = req.path;
+    const event = {
+      path,
+      httpMethod: 'POST',
+      headers: req.headers,
+      body: JSON.stringify(req.body)
+    };
+    module.exports.handler(event, {}, (err, result) => {
+      if (err) {
+        res.status(500).json({ error: err.message || err });
+      } else {
+        res.status(result.statusCode).set(result.headers).send(result.body);
+      }
+    });
+  });
+  const port = process.env.PORT || 9000;
+  app.listen(port, () => {
+    console.log(`本地HTTP服务已启动，端口: ${port}`);
+  });
+} else {
   module.exports.handler(
     {
       path: '/qwen',
