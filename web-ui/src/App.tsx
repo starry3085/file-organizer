@@ -14,74 +14,126 @@ const extensionMap: Record<string, string> = {
   // ...可继续扩展
 };
 
-const llmPlatforms = [
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'deepseek', label: 'DeepSeek' },
-  { value: 'tongyi', label: '通义千问' },
-];
-
-function getFileCategory(filename: string) {
-  const ext = filename.split('.').pop()?.toLowerCase() || '';
-  return extensionMap[ext] || '其他';
-}
+const iconMap: Record<string, string> = {
+  Word文档: '📄',
+  Excel表格: '📊',
+  PPT演示: '📈',
+  PDF文档: '📕',
+  图片: '🖼️',
+  视频: '🎬',
+  音频: '🎵',
+  压缩包: '🗜️',
+  代码: '💻',
+  其他: '📦',
+};
 
 const App: React.FC = () => {
-  // const [files, setFiles] = useState<File[]>([]);
-  const [llmKey, setLlmKey] = useState('');
-  const [llmPlatform, setLlmPlatform] = useState('openai');
-  const [results, setResults] = useState<{ name: string; type: string; category: string }[]>([]);
+  const [files, setFiles] = useState<{ name: string; type: string; category: string; path: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 递归读取文件夹下所有文件
+  const handleDirChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files ? Array.from(e.target.files) : [];
-    setResults(fileList.map(f => ({ name: f.name, type: f.type, category: getFileCategory(f.name) })));
+    setLoading(true);
+    setProgress(0);
+    // 递归处理所有文件
+    const total = fileList.length;
+    const result = fileList.map((f, idx) => {
+      setProgress(Math.round(((idx + 1) / total) * 100));
+      return {
+        name: f.name,
+        type: f.type,
+        category: getFileCategory(f.name),
+        path: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
+      };
+    });
+    setFiles(result);
+    setLoading(false);
   };
 
-  // 预留：大模型API智能分类（后续实现）
-  const handleLLMClassify = () => {
-    alert('大模型API智能分类功能开发中...\n当前仅支持本地规则分类。');
-  };
+  function getFileCategory(filename: string) {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    return extensionMap[ext] || '其他';
+  }
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px #eee' }}>
-      <h2>文件自动分类工具</h2>
-      <div style={{ marginBottom: 16 }}>
-        <input type="file" multiple onChange={handleFileChange} />
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <label>大模型平台：</label>
-        <select value={llmPlatform} onChange={e => setLlmPlatform(e.target.value)}>
-          {llmPlatforms.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="输入API Key（可选）"
-          value={llmKey}
-          onChange={e => setLlmKey(e.target.value)}
-          style={{ marginLeft: 8, width: 220 }}
-        />
-        <button style={{ marginLeft: 8 }} onClick={handleLLMClassify}>智能分类</button>
-      </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5' }}>
-            <th style={{ padding: 8, border: '1px solid #eee' }}>文件名</th>
-            <th style={{ padding: 8, border: '1px solid #eee' }}>类型</th>
-            <th style={{ padding: 8, border: '1px solid #eee' }}>本地分类</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.map((f, i) => (
-            <tr key={i}>
-              <td style={{ padding: 8, border: '1px solid #eee' }}>{f.name}</td>
-              <td style={{ padding: 8, border: '1px solid #eee' }}>{f.type || '-'}</td>
-              <td style={{ padding: 8, border: '1px solid #eee' }}>{f.category}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div style={{ marginTop: 24, color: '#888', fontSize: 13 }}>
-        <div>所有文件仅在本地浏览器处理，绝不上传，API Key仅本地调用。</div>
-        <div>开源地址：<a href="https://github.com/starry3085/file-organizer" target="_blank" rel="noopener noreferrer">starry3085/file-organizer</a></div>
+    <div style={{ minHeight: '100vh', background: '#f6f8fa', padding: 0 }}>
+      <div style={{ maxWidth: 700, margin: '40px auto', padding: 32, background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px #e5e7eb' }}>
+        <h1 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>📁 文件自动分类工具</h1>
+        <div style={{ marginBottom: 24 }}>
+          <input
+            type="file"
+            multiple
+            onChange={handleDirChange}
+            style={{ display: 'none' }}
+            id="dir-picker"
+            {...{ webkitdirectory: 'true', directory: 'true' }}
+          />
+          <label htmlFor="dir-picker">
+            <button style={{
+              padding: '10px 28px',
+              fontSize: 16,
+              borderRadius: 8,
+              border: 'none',
+              background: '#2563eb',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: 600,
+              boxShadow: '0 2px 8px #e0e7ef',
+            }}>
+              选择文件夹
+            </button>
+          </label>
+          <span style={{ marginLeft: 16, color: '#888' }}>
+            {files.length > 0 ? `已选 ${files.length} 个文件` : '未选择文件夹'}
+          </span>
+        </div>
+        {loading && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ width: `${progress}%`, height: 8, background: '#2563eb', transition: 'width 0.3s' }} />
+            </div>
+            <div style={{ color: '#2563eb', marginTop: 8 }}>正在分析文件... {progress}%</div>
+          </div>
+        )}
+        {files.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+              {[...new Set(files.map(f => f.category))].map(cat => (
+                <div key={cat} style={{ background: '#f1f5f9', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15 }}>
+                  {iconMap[cat] || iconMap['其他']} {cat}（{files.filter(f => f.category === cat).length}）
+                </div>
+              ))}
+            </div>
+            <div style={{ maxHeight: 400, overflow: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15 }}>
+                <thead style={{ background: '#f9fafb' }}>
+                  <tr>
+                    <th style={{ padding: 10, borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>文件名</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>类型</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>分类</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>路径</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {files.map((f, i) => (
+                    <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb' }}>
+                      <td style={{ padding: 10 }}>{f.name}</td>
+                      <td style={{ padding: 10 }}>{f.type || '-'}</td>
+                      <td style={{ padding: 10 }}>{iconMap[f.category] || iconMap['其他']} {f.category}</td>
+                      <td style={{ padding: 10, color: '#888' }}>{f.path}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        <div style={{ marginTop: 32, color: '#888', fontSize: 13, textAlign: 'center' }}>
+          <div>所有文件仅在本地浏览器处理，绝不上传，API Key仅本地调用。</div>
+          <div>开源地址：<a href="https://github.com/starry3085/file-organizer" target="_blank" rel="noopener noreferrer">starry3085/file-organizer</a></div>
+        </div>
       </div>
     </div>
   );
