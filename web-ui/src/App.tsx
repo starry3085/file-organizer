@@ -26,14 +26,13 @@ function getFileCategory(filename: string) {
 }
 
 const App: React.FC = () => {
-  const [files, setFiles] = useState<File[]>([]);
+  // const [files, setFiles] = useState<File[]>([]);
   const [llmKey, setLlmKey] = useState('');
   const [llmPlatform, setLlmPlatform] = useState('openai');
   const [results, setResults] = useState<{ name: string; type: string; category: string }[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files ? Array.from(e.target.files) : [];
-    setFiles(fileList);
     setResults(fileList.map(f => ({ name: f.name, type: f.type, category: getFileCategory(f.name) })));
   };
 
