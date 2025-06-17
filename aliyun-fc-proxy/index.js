@@ -57,4 +57,21 @@ module.exports.handler = async (event, context, callback) => {
     console.error('Handler error:', err);
     callback(err);
   }
-}; 
+};
+
+// 本地测试代码，仅在直接运行时触发
+if (require.main === module) {
+  module.exports.handler(
+    {
+      path: '/deepseek',
+      httpMethod: 'POST',
+      headers: {},
+      body: JSON.stringify({ apiKey: 'test', prompt: 'hello' })
+    },
+    {},
+    (err, res) => {
+      console.log('callback:', err, res);
+      process.exit(0);
+    }
+  );
+} 
