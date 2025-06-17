@@ -6,6 +6,8 @@ export interface LLMConfig {
   model?: string;
 }
 
+const VERCEL_PROXY_BASE = 'https://file-organizer-one.vercel.app/api';
+
 async function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -17,14 +19,12 @@ async function readFileText(file: File): Promise<string> {
 
 async function callDeepSeekAPI(content: string, apiKey: string, model = 'deepseek-chat') {
   if (!apiKey) throw new Error('请填写DeepSeek API Key');
-  const url = 'https://api.deepseek.com/v1/chat/completions';
+  const url = `${VERCEL_PROXY_BASE}/deepseek`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      apiKey,
       model,
       messages: [
         { role: 'system', content: '你是一个文件分类助手，请根据内容判断文件类型，返回最合适的分类标签（如：合同、发票、简历、论文、报告、图片、代码、表格、PPT、音频、视频、其他），只返回标签，不要解释。' },
@@ -41,14 +41,12 @@ async function callDeepSeekAPI(content: string, apiKey: string, model = 'deepsee
 
 async function callQwenAPI(content: string, apiKey: string, model = 'qwen-turbo') {
   if (!apiKey) throw new Error('请填写通义千问API Key');
-  const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+  const url = `${VERCEL_PROXY_BASE}/qwen`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      apiKey,
       model,
       input: { prompt: `请根据以下内容判断文件类型，返回最合适的分类标签（如：合同、发票、简历、论文、报告、图片、代码、表格、PPT、音频、视频、其他），只返回标签，不要解释。\n${content.slice(0, 4000)}` },
       parameters: { temperature: 0.2, max_tokens: 20 },
