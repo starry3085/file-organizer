@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 // 分类规则（可扩展）
 const extensionMap: Record<string, string> = {
@@ -31,6 +31,7 @@ const App: React.FC = () => {
   const [files, setFiles] = useState<{ name: string; type: string; category: string; path: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 递归读取文件夹下所有文件
   const handleDirChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,21 +58,32 @@ const App: React.FC = () => {
     return extensionMap[ext] || '其他';
   }
 
+  // 兼容Safari/Chrome的文件夹选择
+  const handlePickFolder = () => {
+    if (inputRef.current) {
+      inputRef.current.value = '';
+      inputRef.current.click();
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f6f8fa', padding: 0 }}>
       <div style={{ maxWidth: 700, margin: '40px auto', padding: 32, background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px #e5e7eb' }}>
-        <h1 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>📁 文件自动分类工具</h1>
+        <h1 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>📁 文件分类整理工具</h1>
         <div style={{ marginBottom: 24 }}>
           <input
+            ref={inputRef}
             type="file"
             multiple
-            onChange={handleDirChange}
             style={{ display: 'none' }}
-            id="dir-picker"
-            {...{ webkitdirectory: 'true', directory: 'true' }}
+            onChange={handleDirChange}
+            // @ts-ignore
+            webkitdirectory="true"
+            // @ts-ignore
+            directory="true"
           />
-          <label htmlFor="dir-picker">
-            <button style={{
+          <button
+            style={{
               padding: '10px 28px',
               fontSize: 16,
               borderRadius: 8,
@@ -81,10 +93,11 @@ const App: React.FC = () => {
               cursor: 'pointer',
               fontWeight: 600,
               boxShadow: '0 2px 8px #e0e7ef',
-            }}>
-              选择文件夹
-            </button>
-          </label>
+            }}
+            onClick={handlePickFolder}
+          >
+            选择文件夹
+          </button>
           <span style={{ marginLeft: 16, color: '#888' }}>
             {files.length > 0 ? `已选 ${files.length} 个文件` : '未选择文件夹'}
           </span>
