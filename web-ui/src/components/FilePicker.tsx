@@ -27,10 +27,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFilesChange }) => {
         multiple
         style={{ display: 'none' }}
         onChange={handleDirChange}
-        // @ts-ignore
-        webkitdirectory="true"
-        // @ts-ignore
-        directory="true"
+        {...{ webkitdirectory: 'true', directory: 'true' }}
       />
       <button
         style={{

@@ -78,8 +78,8 @@ export async function classifyWithLLM(
       }
       quota--;
       if (onQuota && quota < 10) onQuota(quota);
-    } catch (e: any) {
-      category = e?.message || '智能分类失败';
+    } catch (e: unknown) {
+      category = (typeof e === 'object' && e && 'message' in e) ? (e as { message?: string }).message || '智能分类失败' : '智能分类失败';
     }
     results.push({
       name: f.name,
