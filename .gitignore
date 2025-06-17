@@ -1,0 +1,11 @@
+# Python 虚拟环境
+venv/
+
+# macOS 系统文件
+.DS_Store
+
+# 日志文件
+file_organizer.log
+
+# 测试用例目录
+test_files/ 
