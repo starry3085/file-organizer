@@ -7,15 +7,15 @@ import { classifyWithLLM } from './api/llm';
 import { iconMap } from './utils/category';
 
 const llmProviders: { value: LLMProvider; label: string }[] = [
-  { value: 'deepseek', label: 'DeepSeek（免费）' },
   { value: 'qwen', label: '通义千问（免费）' },
+  { value: 'deepseek', label: 'DeepSeek（免费）' },
 ];
 
 const App: React.FC = () => {
   const { files, loading, progress, classifyFiles } = useFileCategory();
   const [llmFiles, setLlmFiles] = useState<typeof files>([]);
   const [useLLM, setUseLLM] = useState(false);
-  const [llmProvider, setLlmProvider] = useState<LLMProvider>('deepseek');
+  const [llmProvider, setLlmProvider] = useState<LLMProvider>('qwen');
   const [llmKey, setLlmKey] = useState('');
   const [llmLoading, setLlmLoading] = useState(false);
   const [quota, setQuota] = useState<number | null>(null);
