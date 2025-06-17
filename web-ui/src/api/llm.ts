@@ -6,7 +6,7 @@ export interface LLMConfig {
   model?: string;
 }
 
-const VERCEL_PROXY_BASE = 'https://<你的真实云端地址>'; // 例如：https://xxx.cn-shenzhen.fcapp.run
+const VERCEL_PROXY_BASE = 'https://file-orer-proxy-muxypznubl.cn-shenzhen.fcapp.run';
 
 async function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
