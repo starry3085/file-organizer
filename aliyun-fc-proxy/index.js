@@ -66,7 +66,7 @@ if (require.main === module) {
       path: '/deepseek',
       httpMethod: 'POST',
       headers: {},
-      body: JSON.stringify({ apiKey: 'test', prompt: 'hello' })
+      body: JSON.stringify({ apiKey: 'sk-3207b265a966424c80d520c122049db0', prompt: 'hello' })
     },
     {},
     (err, res) => {
